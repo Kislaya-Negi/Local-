@@ -356,6 +356,19 @@ a {
   gap: 12px;
 }
 
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
 @media (max-width: 820px) {
   .split { grid-template-columns: 1fr; }
   .header-inner { flex-wrap: wrap; }

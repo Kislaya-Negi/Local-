@@ -14,6 +14,7 @@ Local Link is a full-stack local marketplace app that connects customers with ne
 - In-app customer/vendor chat
 - Direct vendor calling via saved phone number
 - Vendor product create, edit, and delete flow
+- Customer and vendor profile editing
 
 ## Tech Stack
 
@@ -59,10 +60,6 @@ LocalLink-Main-main/
 From the project root:
 
 ```powershell
-cd backend
-npm install
-
-cd ..\frontend
 npm install
 ```
 
@@ -72,7 +69,7 @@ Backend: create `backend/.env`
 
 ```env
 PORT=4000
-MONGODB_URI=mongodb://127.0.0.1:27017/localink
+MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/localink?retryWrites=true&w=majority
 JWT_SECRET=replace_me_with_a_long_random_secret
 CLIENT_ORIGIN=http://localhost:5173
 ```
@@ -80,7 +77,7 @@ CLIENT_ORIGIN=http://localhost:5173
 Frontend: create `frontend/.env`
 
 ```env
-VITE_API_URL=http://localhost:4000
+VITE_API_URL=http://localhost:4000/api
 ```
 
 ## Run the App
@@ -103,11 +100,11 @@ App URLs:
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
-- Health check: `http://localhost:4000/health`
+- API health check: `http://localhost:4000/api/health`
 
 ## Important Note About the Database
 
-If MongoDB is not running locally, the backend falls back to an in-memory MongoDB instance using `mongodb-memory-server`. This is useful for development, but the data is temporary and resets when the backend restarts.
+The backend now expects a real `MONGODB_URI`, which is intended for MongoDB Atlas in deployment. If `MONGODB_URI` is missing or invalid, the backend will fail fast instead of silently using a temporary in-memory database.
 
 ## User Flows
 
@@ -138,32 +135,33 @@ If MongoDB is not running locally, the backend falls back to an in-memory MongoD
 
 ### Auth
 
-- `POST /auth/signup`
-- `POST /auth/login`
-- `GET /auth/me`
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
 
 ### Vendors and products
 
-- `GET /vendors`
-- `GET /vendor/:id`
-- `GET /products/:vendorId`
-- `POST /product`
-- `PATCH /product/:id`
-- `DELETE /product/:id`
+- `GET /api/vendors`
+- `GET /api/vendor/:id`
+- `GET /api/products/:vendorId`
+- `POST /api/product`
+- `PATCH /api/product/:id`
+- `DELETE /api/product/:id`
 
 ### Requests and orders
 
-- `GET /requests`
-- `POST /request`
-- `PUT /request/:id`
-- `PATCH /request/:id`
-- `DELETE /request/:id`
+- `GET /api/requests`
+- `POST /api/request`
+- `PUT /api/request/:id`
+- `PATCH /api/request/:id`
+- `DELETE /api/request/:id`
 
 ### Chat
 
-- `GET /chats`
-- `GET /chat/:otherUserId`
-- `POST /chat/:otherUserId/messages`
+- `GET /api/chats`
+- `GET /api/chat/:otherUserId`
+- `POST /api/chat/:otherUserId/messages`
 
 ## Frontend Pages
 
@@ -173,6 +171,14 @@ If MongoDB is not running locally, the backend falls back to an in-memory MongoD
 - `/vendor/dashboard` - vendor requests, chat inbox, and product management
 
 ## Scripts
+
+### Root workspace
+
+```powershell
+npm run build
+npm run dev:frontend
+npm run dev:backend
+```
 
 ### Frontend
 
@@ -188,6 +194,22 @@ npm run preview
 npm start
 npm run dev
 ```
+
+## Vercel Deployment
+
+This repo is set up for a single Vercel project:
+
+- The React app builds from `frontend/dist`
+- The Express backend is exposed through `api/[[...route]].js`
+- Client requests use `/api/...` in production
+
+Set these Vercel environment variables:
+
+- `MONGODB_URI` = your MongoDB Atlas connection string
+- `JWT_SECRET` = a long random secret
+- `CLIENT_ORIGIN` = your deployed frontend URL, for example `https://your-project.vercel.app`
+
+For local development, keep `frontend/.env` pointing at `http://localhost:4000/api`.
 
 ## Current Status
 

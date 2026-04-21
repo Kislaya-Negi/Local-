@@ -26,6 +26,18 @@ export function AuthProvider({ children }) {
         saveAuth(next);
         setAuth(next);
       },
+      async updateProfile(payload) {
+        if (!token) throw new Error("You need to log in again before updating your profile.");
+        const data = await apiFetch("/auth/me", {
+          token,
+          method: "PATCH",
+          body: payload,
+        });
+        const next = { token, user: data.user };
+        saveAuth(next);
+        setAuth(next);
+        return data.user;
+      },
       logout() {
         clearAuth();
         setAuth(null);
@@ -41,4 +53,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-

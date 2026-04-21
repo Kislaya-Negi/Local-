@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, me, signup } from "../controllers/authController.js";
+import { login, me, signup, updateProfile } from "../controllers/authController.js";
 import { authRequired } from "../middleware/auth.js";
 
 export const authRoutes = Router();
@@ -7,3 +7,4 @@ export const authRoutes = Router();
 authRoutes.post("/signup", signup);
 authRoutes.post("/login", login);
 authRoutes.get("/me", authRequired, me);
+authRoutes.patch("/me", authRequired, updateProfile);

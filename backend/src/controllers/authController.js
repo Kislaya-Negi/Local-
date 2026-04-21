@@ -22,6 +22,19 @@ function normalizePhone(value) {
   return String(value ?? "").trim();
 }
 
+function serializeUser(user) {
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    category: user.category,
+    rating: user.rating,
+    location: user.location,
+    phone: user.phone,
+  };
+}
+
 export async function signup(req, res) {
   const { name, email, password, role, category, location, phone } = req.body ?? {};
   if (!name || !email || !password || !role) {
@@ -85,16 +98,7 @@ export async function signup(req, res) {
   const token = signToken(user._id);
   return res.status(201).json({
     token,
-    user: {
-      id: String(user._id),
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      category: user.category,
-      rating: user.rating,
-      location: user.location,
-      phone: user.phone,
-    },
+    user: serializeUser(user),
   });
 }
 
@@ -116,19 +120,67 @@ export async function login(req, res) {
   const token = signToken(user._id);
   return res.json({
     token,
-    user: {
-      id: String(user._id),
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      category: user.category,
-      rating: user.rating,
-      location: user.location,
-      phone: user.phone,
-    },
+    user: serializeUser(user),
   });
 }
 
 export async function me(req, res) {
-  return res.json({ user: req.user });
+  return res.json({ user: serializeUser(req.user) });
+}
+
+export async function updateProfile(req, res) {
+  const { name, email, category, location, phone } = req.body ?? {};
+  if (!name || !email) {
+    return sendError(res, 400, "Missing required fields", {
+      required: ["name", "email"],
+    });
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const normalizedPhone = normalizePhone(phone);
+  const normalizedLocation = String(location ?? "").trim();
+  const normalizedCategory = String(category ?? "").trim();
+
+  if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+    return sendError(res, 400, "Please provide a valid email address.");
+  }
+
+  if (req.user.role === "vendor") {
+    if (!normalizedCategory || !normalizedLocation || normalizedPhone.length < 7) {
+      return sendError(res, 400, "Vendor profiles require category, location, and a valid phone number.");
+    }
+  }
+
+  const existing = await User.findOne({
+    email: normalizedEmail,
+    _id: { $ne: req.user._id },
+  })
+    .select("_id")
+    .lean();
+
+  if (existing) {
+    return sendError(res, 409, "An account with this email already exists. Try a different email.", {
+      email: normalizedEmail,
+    });
+  }
+
+  const updates = {
+    name: String(name).trim(),
+    email: normalizedEmail,
+    location: normalizedLocation,
+    phone: normalizedPhone,
+  };
+
+  if (req.user.role === "vendor") {
+    updates.category = normalizedCategory;
+  }
+
+  const user = await User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+  }).select("-passwordHash");
+
+  return res.json({
+    user: serializeUser(user),
+  });
 }

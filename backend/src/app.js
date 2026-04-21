@@ -8,14 +8,22 @@ import { requestRoutes } from "./routes/requestRoutes.js";
 import { chatRoutes } from "./routes/chatRoutes.js";
 import { sendError } from "./utils/http.js";
 
+function getAllowedOrigins() {
+  return String(env.clientOrigin ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export function createApp() {
   const app = express();
+  const allowedOrigins = getAllowedOrigins();
 
   app.use(
     cors({
       origin(origin, callback) {
         if (!origin) return callback(null, true);
-        if (origin === env.clientOrigin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
         if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
           return callback(null, true);
         }
@@ -28,12 +36,14 @@ export function createApp() {
 
   app.get("/", (_req, res) => res.type("text/plain").send("Backend running"));
   app.get("/health", (_req, res) => res.json({ ok: true }));
+  app.get("/api", (_req, res) => res.json({ ok: true }));
+  app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-  app.use("/auth", authRoutes);
-  app.use(vendorRoutes);
-  app.use(productRoutes);
-  app.use(requestRoutes);
-  app.use(chatRoutes);
+  app.use("/api/auth", authRoutes);
+  app.use("/api", vendorRoutes);
+  app.use("/api", productRoutes);
+  app.use("/api", requestRoutes);
+  app.use("/api", chatRoutes);
 
   app.use((req, res) => sendError(res, 404, `Route not found: ${req.method} ${req.path}`));
 

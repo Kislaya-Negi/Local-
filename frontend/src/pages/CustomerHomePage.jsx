@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiFetch } from "../services/api.js";
 import { useAuth } from "../app/auth/AuthContext.jsx";
+import { ProfileEditorCard } from "../components/ProfileEditorCard.jsx";
 
 const CATEGORY_OPTIONS = ["All categories", "Grocery", "Bakery", "Handmade", "Repairs", "Services"];
 
@@ -129,6 +130,11 @@ export default function CustomerHomePage() {
 
   return (
     <div className="section">
+      <ProfileEditorCard
+        title="My profile"
+        subtitle="Keep your customer details current so vendors can recognize and contact you more easily."
+      />
+
       <div className="card">
         <div className="vendor-meta">
           <div>

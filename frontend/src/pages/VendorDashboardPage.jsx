@@ -3,6 +3,7 @@ import { apiFetch } from "../services/api.js";
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { Field } from "../components/Field.jsx";
 import { ChatThread } from "../components/ChatThread.jsx";
+import { ProfileEditorCard } from "../components/ProfileEditorCard.jsx";
 
 function statusBadgeClass(status) {
   if (status === "accepted") return "green";
@@ -233,6 +234,11 @@ export default function VendorDashboardPage() {
           </button>
         </div>
       </div>
+
+      <ProfileEditorCard
+        title="Shop profile"
+        subtitle="Update the details customers see on your vendor card, profile page, and call button."
+      />
 
       {error ? <div className="card danger">{error}</div> : null}
 
